@@ -14,39 +14,33 @@ services:
             - FLASK_APP=./src/run.py
         volumes:
             - ./:/app
-        networks:
-            - metanet1-secrets
         depends_on:
-            - postgres
-    postgres:
+            - db
+    db:
         container_name: postgres
         image: postgres:latest
         ports:
             - 5432:5432
-        networks:
-            - metanet1-secrets
         environment:
             - POSTGRES_DB=${PG_DB}
             - POSTGRES_USER=${PG_USER}
             - POSTGRES_PASSWORD=${PG_PASSWORD}
         volumes:
-            - postgres:/var/lib/postgres
+            - db_data:/var/lib/postgresql/data
     pgadmin:
         container_name: pgadmin
         image: dpage/pgadmin4
         ports:
             - 8088:80
-        networks:
-            - metanet1-secrets
         environment:
             - PGADMIN_DEFAULT_EMAIL=${PG_ADMIN_EMAIL}
             - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
     
-    metabase:
+    dataviz:
         image: metabase/metabase:latest
         container_name: metabase
         volumes:
-        - /dev/urandom:/dev/random:ro
+        - dataviz_data:/metabase-data
         ports:
         - 3000:3000
         environment:
@@ -56,12 +50,9 @@ services:
             MB_DB_USER: ${PG_USER}
             MB_DB_PASS: ${PG_PASSWORD}
             MB_DB_HOST: ${PG_HOST}
-        networks:
-        - metanet1-secrets
+            MB_DB_FILE: /metabase-data/metabase.db
         depends_on:
-        - postgres
-networks:
-  metanet1-secrets:
-    driver: bridge
+        - db
 volumes:
-    postgres:
+    db_data:
+    dataviz_data:
